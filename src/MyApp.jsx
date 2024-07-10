@@ -2,6 +2,7 @@ import React from 'react'
 import Logo from './assets/game-logo.png'
 import Player from './components/Player'
 import GameBoard from './components/GameBoard'
+import Log from './components/Log'
 import { useState } from 'react'
 
 function MyApp() {
@@ -41,6 +42,7 @@ function MyApp() {
                 <GameBoard isSelectGameBoard={HandleSelectChange} turns={gameTurns} />
             </div>
         </main>
+        <Log turns={gameTurns}/>
     </div>
   )
 }
