@@ -4,49 +4,29 @@ import Player from './components/Player'
 import GameBoard from './components/GameBoard'
 import Log from './components/Log'
 import { useState } from 'react'
-import { WINNING_COMBINATIONS } from './data/Winning_Combination'
-
-
-function derivedActivePlayer(gameTurns){
-    
-    let currentPlayer = 'X'
-
-    if(gameTurns.length > 0 && gameTurns[0].player === 'X'){
-        currentPlayer = 'O'
-    }
-    return currentPlayer;
-}
-
-
-const InitialGameBoard = [
-    [null, null, null],
-    [null, null, null],
-    [null, null, null],
-];
+import GameOver from './components/GameOver'
+import { derivedWinner } from './data/Winner'
+import { InitialGameBoard } from './data/Winning_Combination'
+import { derivedActivePlayer } from './data/Player'
 
 function MyApp() {
+    const [playerName , setPlayerName] = useState({
+        X : 'Player 1',
+        O : 'Player 2',
+    })
     const [gameTurns, setGameTurns] = useState([]);
     const ActivePlayer = derivedActivePlayer(gameTurns);
-    let GameBoardUpdate = InitialGameBoard
-    let winner;
-
+    let GameBoardUpdate = [...InitialGameBoard.map((innerArray) => [...innerArray])]
+    let hasDraw = gameTurns.length === 9;
     //Update Game board
     for(const turn of gameTurns){
         const {player , square} = turn;
         const {row ,col} = square;
         GameBoardUpdate[row][col] =player
     }
+    const winner =derivedWinner(GameBoardUpdate,playerName)
 
-    //step by step check for winning combination
-    for(const combination of WINNING_COMBINATIONS){
-        const firstSquareSymbol = GameBoardUpdate[combination[0].row][combination[0].column]
-        const secondSquareSymbol = GameBoardUpdate[combination[1].row][combination[1].column]
-        const thirdSquareSymbol = GameBoardUpdate[combination[2].row][combination[2].column]
-
-        if(firstSquareSymbol && firstSquareSymbol === secondSquareSymbol && firstSquareSymbol === thirdSquareSymbol){
-            winner = firstSquareSymbol;
-        }
-    }
+    //Onclick Handle
     //Handle Player Symbol Change
     function HandleSelectChange(rowIndex, colIndex){
         setGameTurns((prevTurns) => {
@@ -61,7 +41,18 @@ function MyApp() {
             return updateTurns
         })
     }
-    
+    function handleRestartGame() {
+        setGameTurns([])
+    }
+
+    function HandlePlayerChangeName(symbol,playername) {
+        setPlayerName((prevPlayerName) => {
+            return{
+                ...prevPlayerName, 
+                [symbol] : playername,
+            }
+        })
+    }
   return ( 
     <div>
         <header>
@@ -71,10 +62,10 @@ function MyApp() {
         <main>
             <div id='game-container'> 
                 <ol id='players' className='highlight-player'>
-                    <Player name="Player 1" symbol="X" Active={ActivePlayer === 'X'}/>
-                    <Player name="Player 2" symbol="O" Active={ActivePlayer === 'O'}/>
+                    <Player name="Player 1" symbol="X" Active={ActivePlayer === 'X'} onChangePlayerName={HandlePlayerChangeName}/>
+                    <Player name="Player 2" symbol="O" Active={ActivePlayer === 'O'} onChangePlayerName={HandlePlayerChangeName}/>
                 </ol>
-                {winner && <p>You Won, {winner}!</p>}
+                {(winner || hasDraw) &&  <GameOver winner={winner} Restart={handleRestartGame}/> }
                 <GameBoard isSelectGameBoard={HandleSelectChange} turns={gameTurns}  GameBoardUpdate={GameBoardUpdate}/>
             </div>
         </main>
